@@ -1,15 +1,18 @@
-# Digital Signature with HMAC-SHA512
+# Digital Signature with HMAC-SHA512 & RSA
 
-A secure digital document signing and verification system built with Next.js, featuring custom HMAC-SHA512 implementation, AES-256 encryption, and document download capabilities.
+A comprehensive digital document signing and verification system built with Next.js, featuring both symmetric (HMAC-SHA512) and asymmetric (RSA) cryptography, AES-256 encryption, and document download capabilities.
 
 ![Digital Signature](https://img.shields.io/badge/Security-HMAC--SHA512-blue)
+![RSA](https://img.shields.io/badge/Cryptography-RSA-red)
 ![Encryption](https://img.shields.io/badge/Encryption-AES--256--CBC-green)
 ![Frontend](https://img.shields.io/badge/Frontend-Next.js-black)
 ![UI](https://img.shields.io/badge/UI-shadcn/ui-purple)
 
 ## 🔐 Features
 
+- **Dual Cryptography Support**: HMAC-SHA512 (symmetric) and RSA (asymmetric) digital signatures
 - **Custom HMAC-SHA512 Implementation**: Built from scratch without external crypto libraries
+- **RSA Key Management**: Generate and manage RSA-2048 key pairs
 - **Document Encryption**: AES-256-CBC encryption for secure document storage
 - **Secure Verification**: Constant-time comparison to prevent timing attacks
 - **Document Download**: Download decrypted documents as .txt files

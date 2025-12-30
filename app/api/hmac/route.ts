@@ -1,6 +1,48 @@
 import { NextResponse } from "next/server"
 import crypto from "crypto"
 
+// RSA Key Pair Storage (in production, use secure key management)
+const rsaKeys = new Map<string, { publicKey: string, privateKey: string }>()
+
+// RSA Functions
+function generateRSAKeyPair(keyId: string) {
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: 'spki',
+      format: 'pem'
+    },
+    privateKeyEncoding: {
+      type: 'pkcs8',
+      format: 'pem'
+    }
+  })
+
+  rsaKeys.set(keyId, { publicKey, privateKey })
+  return { publicKey, privateKey }
+}
+
+function signWithRSA(message: string, privateKey: string): string {
+  const sign = crypto.createSign('SHA256')
+  sign.update(message)
+  const signature = sign.sign(privateKey, 'base64')
+  return signature
+}
+
+function verifyWithRSA(message: string, signature: string, publicKey: string): boolean {
+  try {
+    const verify = crypto.createVerify('SHA256')
+    verify.update(message)
+    return verify.verify(publicKey, signature, 'base64')
+  } catch {
+    return false
+  }
+}
+
+function getRSAKeys(keyId: string) {
+  return rsaKeys.get(keyId)
+}
+
 class HMACSHA512 {
   private blockSize = 128 // SHA512 block size
   private opad = Buffer.alloc(this.blockSize, 0x5c)
@@ -127,8 +169,9 @@ function verifyAndDecryptSignature(signature: string, secretKey: string): { vali
 
 export async function POST(req: Request) {
   try {
-    const { action, message, secret, signature } = await req.json()
+    const { action, message, secret, signature, keyId, publicKey } = await req.json()
 
+    // HMAC Actions
     if (action === "generate") {
       if (!message || !secret) {
         return NextResponse.json({ error: "Message and secret are required" }, { status: 400 })
@@ -159,9 +202,52 @@ export async function POST(req: Request) {
       }
     }
 
+    // RSA Actions
+    if (action === "generate-rsa-keys") {
+      if (!keyId) {
+        return NextResponse.json({ error: "Key ID is required" }, { status: 400 })
+      }
+
+      const keyPair = generateRSAKeyPair(keyId)
+      return NextResponse.json({
+        success: true,
+        publicKey: keyPair.publicKey,
+        message: "RSA key pair generated successfully"
+      })
+    }
+
+    if (action === "rsa-sign") {
+      if (!message || !keyId) {
+        return NextResponse.json({ error: "Message and key ID are required" }, { status: 400 })
+      }
+
+      const keys = getRSAKeys(keyId)
+      if (!keys) {
+        return NextResponse.json({ error: "RSA key pair not found. Generate keys first." }, { status: 400 })
+      }
+
+      const rsaSignature = signWithRSA(message, keys.privateKey)
+      return NextResponse.json({
+        signature: rsaSignature,
+        publicKey: keys.publicKey
+      })
+    }
+
+    if (action === "rsa-verify") {
+      if (!message || !signature || !publicKey) {
+        return NextResponse.json({ error: "Message, signature, and public key are required" }, { status: 400 })
+      }
+
+      const isValid = verifyWithRSA(message, signature, publicKey)
+      return NextResponse.json({
+        valid: isValid,
+        status: isValid ? "RSA signature verified successfully!" : "RSA signature verification failed"
+      })
+    }
+
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
-    console.error("HMAC Error:", error)
+    console.error("API Error:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }
