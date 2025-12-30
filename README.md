@@ -12,7 +12,7 @@ A comprehensive digital document signing and verification system built with Next
 
 - **Dual Cryptography Support**: HMAC-SHA512 (symmetric) and RSA (asymmetric) digital signatures
 - **Custom HMAC-SHA512 Implementation**: Built from scratch without external crypto libraries
-- **RSA Key Management**: Generate and manage RSA-2048 key pairs
+- **RSA Key Management**: Generate and manage RSA-2048 key pairs with SHA-512
 - **Document Encryption**: AES-256-CBC encryption for secure document storage
 - **Secure Verification**: Constant-time comparison to prevent timing attacks
 - **Document Download**: Download decrypted documents as .txt files
@@ -105,7 +105,7 @@ Documents are encrypted using AES-256-CBC with:
 ```
 digital-signature-with-hmac/
 ├── app/
-│   ├── api/hmac/route.ts      # API endpoint with HMAC implementation
+│   ├── api/hmac/route.ts      # API endpoint with HMAC & RSA implementation
 │   ├── globals.css            # Global styles
 │   ├── layout.tsx             # Root layout
 │   └── page.tsx               # Main page
@@ -113,7 +113,8 @@ digital-signature-with-hmac/
 │   ├── signature-dashboard.tsx # Main UI component
 │   └── ui/                    # shadcn/ui components
 ├── scripts/
-│   └── hmac_signature.py      # Python implementation (legacy)
+│   ├── hmac_signature.py      # Python HMAC-SHA512 implementation
+│   └── rsa_signature.py       # Python RSA-SHA512 implementation
 ├── lib/
 │   └── utils.ts               # Utility functions
 └── public/                    # Static assets
@@ -206,11 +207,24 @@ npm run lint     # Run ESLint
 
 ### Testing the Implementation
 
-A test script is available to verify the HMAC implementation:
+Test scripts are available to verify both HMAC and RSA implementations:
 
+#### HMAC Testing:
 ```bash
 python scripts/hmac_signature.py generate '{"message": "test", "secret": "key"}'
 python scripts/hmac_signature.py verify '{"message": "test", "signature": "...", "secret": "key"}'
+```
+
+#### RSA Testing:
+```bash
+# Generate RSA key pair
+python scripts/rsa_signature.py generate-keys
+
+# Sign a message
+python scripts/rsa_signature.py sign '{"message": "Hello World", "key_id": "default"}'
+
+# Verify signature
+python scripts/rsa_signature.py verify '{"message": "Hello World", "signature": "...", "public_key": "..."}'
 ```
 
 ## 🤝 Contributing

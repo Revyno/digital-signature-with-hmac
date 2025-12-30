@@ -23,7 +23,7 @@ function generateRSAKeyPair(keyId: string) {
 }
 
 function signWithRSA(message: string, privateKey: string): string {
-  const sign = crypto.createSign('SHA256')
+  const sign = crypto.createSign('SHA512')
   sign.update(message)
   const signature = sign.sign(privateKey, 'base64')
   return signature
@@ -31,7 +31,7 @@ function signWithRSA(message: string, privateKey: string): string {
 
 function verifyWithRSA(message: string, signature: string, publicKey: string): boolean {
   try {
-    const verify = crypto.createVerify('SHA256')
+    const verify = crypto.createVerify('SHA512')
     verify.update(message)
     return verify.verify(publicKey, signature, 'base64')
   } catch {
